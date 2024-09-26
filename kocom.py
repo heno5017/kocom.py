@@ -51,29 +51,31 @@ room_h_dic = {'livingroom':'00', 'myhome':'00', 'bedroom':'01', 'room1':'02', 'r
 # mqtt functions ----------------------------
 
 def init_mqttc():
-    mmqttc = mqtt.Client()
-    mqttc.on_message = mqtt_on_message
-    mqttc.on_subscribe = mqtt_on_subscribe
-    mqttc.on_connect = mqtt_on_connect
-    mqttc.on_disconnect = mqtt_on_disconnect
+    mqtt_client = mqtt.Client()  # mqtt.Client() 객체 생성
+    mqtt_client.on_message = mqtt_on_message
+    mqtt_client.on_subscribe = mqtt_on_subscribe
+    mqtt_client.on_connect = mqtt_on_connect
+    mqtt_client.on_disconnect = mqtt_on_disconnect
 
-    if config.get('MQTT','mqtt_allow_anonymous') != 'True':
+    if config.get('MQTT', 'mqtt_allow_anonymous') != 'True':
         logtxt = "[MQTT] connecting (using username and password)"
-        mqttc.username_pw_set(username=config.get('MQTT','mqtt_username',fallback=''), password=config.get('MQTT','mqtt_password',fallback=''))
+        mqtt_client.username_pw_set(username=config.get('MQTT', 'mqtt_username', fallback=''), password=config.get('MQTT', 'mqtt_password', fallback=''))
     else:
         logtxt = "[MQTT] connecting (anonymous)"
 
-    mqtt_server = config.get('MQTT','mqtt_server')
-    mqtt_port = int(config.get('MQTT','mqtt_port'))
-    for retry_cnt in range(1,31):
+    mqtt_server = config.get('MQTT', 'mqtt_server')
+    mqtt_port = int(config.get('MQTT', 'mqtt_port'))
+    
+    for retry_cnt in range(1, 31):
         try:
             logging.info(logtxt)
-            mqttc.connect(mqtt_server, mqtt_port, 60)
-            mqttc.loop_start()
-            return mqttc
+            mqtt_client.connect(mqtt_server, mqtt_port, 60)
+            mqtt_client.loop_start()
+            return mqtt_client  # mqtt_client 반환
         except:
             logging.error('[MQTT] connection failure. #' + str(retry_cnt))
             time.sleep(10)
+    
     return False
 
 def mqtt_on_subscribe(mqttc, obj, mid, granted_qos):
